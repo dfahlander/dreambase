@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "es6",
+        "target": "es6"
+    },
+    "include": [
+        "*.ts"
+    ],
+    /*"files": [
+        "collection.ts"
+    ],*/
+    "exclude": [
+        "node_modules"//,
+        //"**/*.spec.ts"
+    ]
+}
