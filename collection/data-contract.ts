@@ -52,4 +52,3 @@ export interface IMultiArgsWhereQuery extends IWhereQuery {
     data: KeyPathAndValue
 }
 
-export type QueryExecutor = (query: IQuery, onNext: Function) => Promise<any>;

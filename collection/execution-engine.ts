@@ -2,11 +2,18 @@ import {
     IQuery,
     IEnumerateQuery,
     ILimitQuery
-} from './query';
+} from './data-contract';
 
-export interface CancelToken {
+export interface ICancelToken {
     cancelled: boolean;
     cancel();
+} 
+
+export class CancelToken implements ICancelToken {
+    cancelled: boolean;
+    cancel() {
+        this.cancelled = true;
+    }
 }
 
 export enum Flags {
@@ -19,9 +26,33 @@ export enum Flags {
     PreferArray = 64
 }
 
-export abstract class DefaultQueryEngine {
+export abstract class QueryExecutionEngine {
 
-    abstract enumerate (onNext, query : IEnumerateQuery) : Promise<any>;
+    // This is how to invoke the engine on a query:
+    public static executeQuery(query: IQuery, onNext: Function, engine: QueryExecutionEngine) {
+    	let ct = new CancelToken();
+        return engine[query.op](query.parent, ct, Flags.Values, onNext);
+    }
+
+    /** The only must-implement method. The rest is "polyfilled". You can override any other method that
+     * make sense to override for optimization.
+     * 
+     * This method should do the following:
+     * 1. Inspect provided flags. Enumerate the correct data based on flags:
+     *      * Flags.Values : Enumerate values of the collection.
+     *      * Flags.PrimaryKeys : Enumerate primary keys of the collection. If don't have, just throw Error.
+     *      * Flags.Keys : Enumerate the keys being indexed. If don't have, throw Error.
+     * 
+     * 2. Loop through the entire collection. Between each iteration, inspect whether given cancelToken
+     *    is not cancelled. If it is, resolve promise (DONT reject due to a cancellation here!). For
+     *    each record you iterate call given onNext function with its value.
+     * 
+     * 3. When done looping through the entire collection, resolve the returned Promise with undefined (!)
+     * 
+     * Optionally, if flag PreferArray is set, but NOT MustEnumerate, you may return a Promise that 
+     * resolves with the entire collection as an array instead.
+     */
+    abstract enumerate (query : IEnumerateQuery, ct: ICancelToken, flags: Flags, onNext: Function) : Promise<any>;
     
     limit (query, ct, flags, onNext, limit: number) {
         return this[query.op](query.parent, ct, flags | Flags.MustEnumerate,
@@ -93,4 +124,3 @@ export abstract class DefaultQueryEngine {
     }
     
 }
-

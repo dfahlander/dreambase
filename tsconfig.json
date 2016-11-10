@@ -5,11 +5,12 @@
         "strictNullChecks": true
     },
     "include": [
-        "*.ts"
+        "**/*.ts",
+        "src/collection/*.ts"
     ],
-    /*"files": [
+    "files": [
         "collection.ts"
-    ],*/
+    ],
     "exclude": [
         "node_modules"//,
         //"**/*.spec.ts"

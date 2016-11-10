@@ -1,7 +1,18 @@
-import * as contract from './collection';
-import {QueryExecutor, IWhereQuery, IQuery} from './query';
+import {Collection, WhereClause} from './interfaces';
+import {IQuery} from './data-contract'
 
-export default function (executeQuery : QueryExecutor) {
+
+interface Provider<T, TPrimaryKey> {
+    Collection: new ()=>Collection<T, TPrimaryKey>;
+    WhereClause: new ()=>WhereClause<T, TPrimaryKey>;
+}
+
+type QueryExecutor = (query: IQuery, onNext: Function) => Promise<any>;
+
+/** This function 
+ * 
+ */
+export default function createProvider<T, TPrimaryKey> (executeQuery : QueryExecutor) : Provider<T, TPrimaryKey> {
     
     function WhereClause (collection, indexName, op?) {
         this.coll = collection;
@@ -128,4 +139,11 @@ export default function (executeQuery : QueryExecutor) {
             return new WhereClause(this, keyPath, 'or');
         }
     }
+
+    let p : {0: Provider<T, TPrimaryKey>} = {};
+    (p as any)[0] = {
+        Collection: Collection,
+        WhereClause: WhereClause
+    };
+    return p[0];
 }
