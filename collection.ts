@@ -1,6 +1,5 @@
 
 export interface Collection<T, TPrimaryKey> extends Enumerable<T> {
-    distinct() : Collection<T, TPrimaryKey>;
     eachKey(onNextKey: (any)=>any) : Promise<any>;
     eachPrimaryKey(onNextKey: (TPrimaryKey)=>any) : Promise<any>;
     eachUniqueKey(onNextKey: (any)=>any) : Promise<any>;
@@ -12,13 +11,14 @@ export interface Collection<T, TPrimaryKey> extends Enumerable<T> {
 
 export interface Enumerable<T> {
     each (onNext: (T)=>any) : Promise<any>;
-    toArray () : Promise<T[]>;
+    toArray (cb?: (result: T[]) => any) : Promise<T[]>;
     map<TMapped> (mapperFn: (T) => TMapped | Promise<TMapped>) : Enumerable<TMapped>;
     filter(filterFn: (T) => boolean | Promise<boolean>) : Enumerable<T>;
     count() : Promise<number>;
     reverse() : Enumerable<T>;
     first() : Promise<T>;
     last() : Promise<T>;
+    limit(limit: number) : Enumerable<T>;
     offset(offset : number) : Enumerable<T>;
     until() : Enumerable<T>;
 }
@@ -48,5 +48,5 @@ export interface WhereClause<T, TPrimaryKey> {
 
 export interface Expression<T, TPrimaryKey> extends Collection<T, TPrimaryKey> {
     or (key : string) : WhereClause<T, TPrimaryKey>;
+    distinct() : Collection<T, TPrimaryKey>;
 }
-
