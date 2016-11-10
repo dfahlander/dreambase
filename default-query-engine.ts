@@ -10,9 +10,9 @@ export interface CancelToken {
 }
 
 export enum Flags {
-    GiveValues = 1,
-    GiveKeys = 2,
-    GivePrimaryKeys = 4,
+    Values = 1,
+    Keys = 2,
+    PrimaryKeys = 4,
     Unique = 8,
     Reverse = 16,
     MustEnumerate = 32,
@@ -20,13 +20,6 @@ export enum Flags {
 }
 
 export abstract class DefaultQueryEngine {
-    /*ct: CancelToken;
-    flags: ExecutionFlags;
-
-    constructor (cancelToken: CancelToken, flags: ExecutionFlags) {
-        this.ct = cancelToken;
-        this.flags = flags;
-    }*/
 
     abstract enumerate (onNext, query : IEnumerateQuery) : Promise<any>;
     
@@ -50,6 +43,11 @@ export abstract class DefaultQueryEngine {
     }
 
     map (query, ct, flags, onNext, mapperFn) {
+        if ((flags & Flags.Values) == 0) {
+            // Our caller expects us to deliver something else than values (keys or primary keys)
+            // This conflicts with the use of map
+            throw new Error ("Cannot enumerate keys or primaryKeys on a mapped Collection (an Enumerable)");
+        }
         // Need to create a promise here, because we are doing own async stuff (mapperFn MAY return a promise!) 
         return new Promise ((resolve, reject) => {
             let numAsyncMappersRunning = 0,
@@ -86,11 +84,13 @@ export abstract class DefaultQueryEngine {
         });
     }
 
-    keys (fn, coll) {
-        return this[coll.op](fn, coll.parent, coll.data);
+    keys (query, ct, flags, onNext) {
+        return this[query.op](query.parent, ct, (flags ^ ~(Flags.PrimaryKeys | Flags.Values) | Flags.Keys), onNext);
     }
 
-    primaryKeys 
+    primaryKeys (query, ct, flags, onNext) {
+        return this[query.op](query.parent, ct, (flags ^ ~(Flags.Keys | Flags.Values) | Flags.PrimaryKeys), onNext);        
+    }
     
 }
 
