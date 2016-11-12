@@ -2,7 +2,7 @@ import {
     IQuery,
     IEnumerateQuery,
     ILimitQuery
-} from './data-contract';
+} from './iquery';
 
 export interface ICancelToken {
     cancelled: boolean;
@@ -23,7 +23,8 @@ export enum Flags {
     Unique = 8,
     Reverse = 16,
     MustEnumerate = 32,
-    PreferArray = 64
+    WantsArray = 64,
+    WantsCount = 128
 }
 
 export abstract class QueryExecutionEngine {
@@ -49,7 +50,7 @@ export abstract class QueryExecutionEngine {
      * 
      * 3. When done looping through the entire collection, resolve the returned Promise with undefined (!)
      * 
-     * Optionally, if flag PreferArray is set, but NOT MustEnumerate, you may return a Promise that 
+     * Optionally, if flag WantsArray is set, but NOT MustEnumerate, you may return a Promise that 
      * resolves with the entire collection as an array instead.
      */
     abstract enumerate (query : IEnumerateQuery, ct: ICancelToken, flags: Flags, onNext: Function) : Promise<any>;
@@ -66,7 +67,7 @@ export abstract class QueryExecutionEngine {
 
     toArray (query, ct, flags, onNext) {
         let a : any[] = [];
-        return this[query.op](query.parent, ct, flags | Flags.PreferArray, x => a.push(x), query.data).then(_a => {
+        return this[query.op](query.parent, ct, flags | Flags.WantsArray, x => a.push(x), query.data).then(_a => {
             // If inner engine gave us an array, our given callback was never called and we
             // inner engine already returned the whole result as an array.
             return _a || a;
