@@ -16,7 +16,7 @@ type QueryExecutor = (query: IQuery, onNext?: Function) => Promise<any>;
 /** This function 
  * 
  */
-export default function createCollectionClass (executeQuery) {
+export default function createCollectionClass (QueryExecutor) {
     
     function WhereClause (collection, keyPath, op) {
         this.coll = collection;
@@ -60,9 +60,10 @@ export default function createCollectionClass (executeQuery) {
         }
     });
  
-    function Collection (parent, op, data) {
-        this.parent = parent;
-        this.op = op || "enumerate";
+    function Collection (down, op, data) {
+        // First creation: new Collection(null, "uri", "friends");
+        this.down = down;
+        this.op = op;
         this.data = data;
     }
 
@@ -71,11 +72,11 @@ export default function createCollectionClass (executeQuery) {
         // IEnumerable
         //
         each (onNext) {
-            return executeQuery(this, onNext);
+            return new QueryExecutor()[this.op](this.down);
         },
 
         toArray(cb) {
-            return executeQuery(new Collection(this, "toArray")).then(cb);
+            return new QueryExecutor().toArray(this).then(cb);
         },
 
         first(cb) {
@@ -114,7 +115,7 @@ export default function createCollectionClass (executeQuery) {
         },
 
         where(keyPath) {
-            return new WhereClause(this, keyPath, this.parent ? 'and' : null);
+            return new WhereClause(this, keyPath, this.down ? 'and' : null);
         },
 
         //

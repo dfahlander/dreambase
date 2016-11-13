@@ -1,5 +1,5 @@
 export interface IQuery {
-    parent: IQuery | null;
+    down: IQuery | null;
     op: string;
     data: any;
 }
@@ -27,14 +27,14 @@ export interface IWhereQuery extends IQuery {
 }
 
 export interface IExpressionQuery extends IQuery {
-    parent: IExpressionQuery | IWhereQuery
+    down: IExpressionQuery | IWhereQuery
     op: 'or' | 'and';
     data: IExpressionQuery | IWhereQuery
 }
 
 
 // Enumerable Queries
-export interface IEnumerateQuery extends IQuery { op: 'enumerate'; }
+export interface IExecuteQuery extends IQuery { op: 'enumerate'; }
 export interface IToArrayQuery extends IQuery { op: 'toArray'; }
 export interface IMapQuery extends IQuery { op: 'map'; data: Function }
 export interface IFilterQuery extends IQuery { op: 'filter'; data: Function }
