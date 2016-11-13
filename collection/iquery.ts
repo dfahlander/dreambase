@@ -52,3 +52,4 @@ export interface IMultiArgsWhereQuery extends IWhereQuery {
     data: KeyPathAndValue
 }
 
+
