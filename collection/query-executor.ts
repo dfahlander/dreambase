@@ -1,9 +1,5 @@
 import {extend} from './utils';
-import {
-    IQuery,
-    IExecuteQuery,
-    ILimitQuery
-} from './iquery';
+import {IQuery} from './iquery';
 
 export interface ICancelToken {
     cancelled: boolean;
@@ -39,14 +35,17 @@ export abstract class QueryExecutor implements IQueryExecutorOptions {
         } else {
             this._cancelToken = new CancelToken();
         }
-    }     
+    }
+
     _down(query : IQuery, onNext: StreamCallback, overridedOptions?:IQueryExecutorOptions) {
         return new (this.constructor as new (options,overridedOptions)=>QueryExecutor)
             (this, overridedOptions)[query.op](query.down, onNext, query.data);
     }
+
     each (query: IQuery, onNext: StreamCallback) {
         return this._down(query, onNext, {_as: 'stream'});
     }
+
     toArray (query: IQuery) {
         assert(!this._as); 
         const result:any[] = [];
@@ -56,18 +55,24 @@ export abstract class QueryExecutor implements IQueryExecutorOptions {
         // inner engine already returned the whole result as an array.
         // Above code will handle both possible scenarios.
     }
+
     count (query: IQuery) {
         assert (!this._as);
         let result = 0;
         return this._down(query, ()=>++result, {_as: 'countOrStream'})
         .then (count => isNaN(count) ? result : count); 
     }
+
     keys (query: IQuery, onNext: StreamCallback) {
         return this._down(query, onNext, {_result: 'keys'});
     }
 
-    primaryKeys (query, ct, flags, onNext) {
+    primaryKeys (query: IQuery, onNext: StreamCallback) {
         return this._down(query, onNext, {_result: 'primaryKeys'});
+    }
+
+    test(query: IQuery, values) {
+        return new QueryTester(values)[query.op](query.down, query.data); 
     }
 
     // Expressions
@@ -81,6 +86,11 @@ export abstract class QueryExecutor implements IQueryExecutorOptions {
         onNext: StreamCallback,
         value: {keyPath: string, value: any});
 
+    abstract equalsIgnoreCase(
+        query: IQuery,
+        onNext: StreamCallback,
+        value: {keyPath: string, value: string});        
+
     abstract equalsAnyOfIgnoreCase(
         query: IQuery,
         onNext: StreamCallback,
@@ -89,7 +99,7 @@ export abstract class QueryExecutor implements IQueryExecutorOptions {
     // ...
 
 
-    abstract uri (query : IQuery, onNext: StreamCallback, uri: string) : Promise<any>;
+    abstract list (query: null, onNext: StreamCallback, uri: string) : Promise<any>;
 
     // But don't have limit implemented in base! This is a template!
     limit (query: IQuery, onNext: StreamCallback, limit: number) {

@@ -1,19 +1,6 @@
 import {NO_CHAR_ARRAY, getArrayOf, keys} from './utils';
 
-/*import {ICollection, IExpression, IEnumerable, IWhereClause} from './icollection';
-import {IQuery} from './iquery'
-
-interface CollectionProvider<T, TPrimaryKey> {
-    Collection: new ()=>ICollection<T, TPrimaryKey>;
-    WhereClause: new ()=>IWhereClause<T, TPrimaryKey>;
-}
-
-type QueryExecutor = (query: IQuery, onNext?: Function) => Promise<any>;
-*/
-
-
-
-/** This function 
+/** This function creates a concrete Collection constructor. 
  * 
  */
 export default function createCollectionClass (QueryExecutor) {
@@ -50,18 +37,18 @@ export default function createCollectionClass (QueryExecutor) {
             if (args.some(a => spec.indexOf((typeof a)[0]) < 0)) {
                 throw new TypeError (`Invalid type passed to WhereClause.${op}`);
             }
-            let rv = new Expression(this.coll, op, {keyPath: this.keyPath, values: args});
-            return this.op ? new Expression(null, this.op, {lExpr: this.coll, rExpr: rv}) : rv;
+            let rv = new Collection(this.coll, op, {keyPath: this.keyPath, values: args});
+            return this.op ? new Collection(null, this.op, {lExpr: this.coll, rExpr: rv}) : rv;
         } : function (val) {
             if (spec.indexOf((typeof val)[0]) < 0)
                 throw new TypeError (`Invalid argument passed to WhereClause.${op}`);
-            let rv = new Expression(this.coll, op, {keyPath: this.keyPath, value: val});
-            return this.op ? new Expression(null, this.op, {lExpr: this.coll, rExpr: rv}) : rv;
+            let rv = new Collection(this.coll, op, {keyPath: this.keyPath, value: val});
+            return this.op ? new Collection(null, this.op, {lExpr: this.coll, rExpr: rv}) : rv;
         }
     });
  
     function Collection (down, op, data) {
-        // First creation: new Collection(null, "uri", "friends");
+        // First creation: new Collection(null, "list", "friends");
         this.down = down;
         this.op = op;
         this.data = data;
@@ -72,7 +59,7 @@ export default function createCollectionClass (QueryExecutor) {
         // IEnumerable
         //
         each (onNext) {
-            return new QueryExecutor()[this.op](this.down);
+            return new QueryExecutor()[this.op](this.down, onNext);
         },
 
         toArray(cb) {

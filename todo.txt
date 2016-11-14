@@ -1,0 +1,53 @@
+
+1. Move the code into dexie for now: (collection.js + ts interfaces)
+2. Install typescript in dexie and a tsconfig file that only compiles collection-executor.ts and
+   collection-executor-dexie.ts (output es6 code to input in babel later). Gitignore these js files.
+3. What is pretty straight-forward right now:
+   1. Execute a collection query using indexedDB.
+   2. orderBy and chained where-clauses using simple execution plans based on primKey lookups.
+   3. Utilize compound indexes when first criterias are 'equals'.
+   4. and operator (or innerJoin on primary key, same table)
+4. Challenges:
+   * Limit the query for primaryKeys in innerJoin... what should be the fallback method? Probably manually test each value.
+   * Limit query for orderBy. What should be the fallback method? What if query all is also too big?
+   * How to optimize execution planner? Doing collection.count() is too specific to the exact query. Maybe
+     at this time, we could always use the count() strategy even though it takes time to do.
+   * Conclusion: Skip optimizations here. Always prefer compound keys if available. If not, to getAllKeys().
+   * Utilizing "complex" compound indexes when first criterias are not just "equals". If first key is indexed in itself also,
+     do a unique keysAndPrimKeys() on it. If that count is less than, let's say 25, then execute all compounds
+     in parallell, else execute them in bunches of 25. Logically or these results.
+   * Utilizing "complex" compound indexes where orderBy should be used on last indexed item.
+     With parallell execution of complex compound queries, we could emit the a key only if all parallell executors
+     agree on the least key (ordeBy key). If doing it sequencially, we could have to queue up until the last
+     parallell bunch is run.
+   * Take the query:
+        db.Activity.where('Tick').below(dayEnd)
+                     .and('Tock').above(dayStart)
+                     .orderBy('Tock')
+                     .toArray();
+     Plan:
+        1. tickKeys[] := all unique Tick where Tick < dayEnd. Will be thousands of them. 
+        2. For each tickKey, do compound query between([tickKey, dayStart],[tickKey, maxKey])
+           The first thousands of these requests will yield no result.
+           We could probably not launch thousands of these in parallell, so we would
+           have to do it sequencially, which would take enormously long time, even if
+           doing it in bunches of 25.
+        3. Conclusion:
+           We should not use this strategy here due to the count of unique Tick.
+           So we must change strategy to just query Tock by value and then manually
+           filter Tick.
+
+        4. Tanke:   
+           Ha ett nytt typ av index här? [Tick+Tock]:daterange(1). (Se https://www.postgresql.org/docs/current/static/rangetypes.html#RANGETYPES-GIST)
+           daterange skapar en egen liten tabell {date, *ids} där den mappar alla ids
+           för varje helt datum. För varje add/put/update uppdateras affekterade entries.
+           Om man identifierar en sådan här fråga (söker på col1.above() och col2.below()),
+           så får man felmeddelande att det borde indexeras på detta sätt.
+           Även [from,to]:range(1000) för numbers.
+           daterange(x) = range(x * millisecs per day)
+           
+
+
+
+
+
