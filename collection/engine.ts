@@ -1,5 +1,5 @@
 import {extend} from './utils';
-import {IQuery} from './iquery';
+import {IQuery} from './iengine';
 
 export interface ICancelToken {
     cancelled: boolean;
