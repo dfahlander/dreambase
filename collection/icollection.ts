@@ -5,14 +5,14 @@ export interface ICollection<T, TPrimaryKey> extends IEnumerable<T> {
     keys(): Promise<any[]>;
     primaryKeys(): Promise<TPrimaryKey[]>;
     uniqueKeys(): Promise<any[]>;
-    where (keyPath: string): IWhereClause<T, TPrimaryKey>;
+    where (keyPath: string | string[]): IWhereClause<T, TPrimaryKey>;
     distinct(): IEnumerable<T>;
     unique(): ICollection<T, TPrimaryKey>;
     map<TMapped> (mapperFn: (T) => TMapped | Promise<TMapped>): ICollection<TMapped, TPrimaryKey>;
     mapKeys(): IEnumerable<any>;
     mapPrimaryKeys(): IEnumerable<TPrimaryKey>;
     // To implement:
-    get(key:TPrimaryKey): Promise<T>; // If on root. Do db get. Else do this.where(':id').equals(key).first(); 1. do get. 2. Filter object. 3. Map object. 4. Return object.
+    get(key:TPrimaryKey): Promise<T>; // If on root. Do db get. Else do this.cmp(':id').equals(key).first(); 1. do get. 2. Filter object. 3. Map object. 4. Return object.
 }
 
 export interface IEnumerable<T> {
@@ -49,7 +49,7 @@ export interface IWhereClause<T, TPrimaryKey> {
     between(lower: any, upper: any, includeLower?: boolean, includeUpper?: boolean): IExpression<T, TPrimaryKey>;
     equals(key: any): IExpression<T, TPrimaryKey>;
     equalsIgnoreCase(key: string): IExpression<T, TPrimaryKey>;
-    inAnyRange(ranges: Array<any[]>): IExpression<T, TPrimaryKey>;
+    inAnyRange(ranges: Array<any[]>, options?: {includeLowers?: boolean, includeUppers?: boolean}): IExpression<T, TPrimaryKey>;
     startsWith(key: string): IExpression<T, TPrimaryKey>;
     startsWithAnyOf(prefixes: string[]): IExpression<T, TPrimaryKey>;
     startsWithAnyOf(...prefixes: string[]): IExpression<T, TPrimaryKey>;

@@ -140,12 +140,15 @@ keys(operators).forEach(op => {
         if (args.some(a => spec.indexOf((typeof a)[0]) < 0)) {
             throw new TypeError (`Invalid type passed to WhereClause.${op}`);
         }
-        let rv = new this.coll.Collection(this.coll, op, {keyPath: this.keyPath, values: args});
-        return this.op ? new this.coll.Collection(this.coll, this.op, rv) : rv;
+        let rv = new this.Collection(this.coll, op, {keyPath: this.keyPath, value: args});
+        return this.op ? new this.Collection(this.coll, this.op, rv) : rv;
     } : function (val) {
         if (spec.indexOf((typeof val)[0]) < 0)
             throw new TypeError (`Invalid argument passed to WhereClause.${op}`);
-        let rv = new this.coll.Collection(this.coll, op, {keyPath: this.keyPath, value: val});
-        return this.op ? new this.coll.Collection(this.coll, this.op, rv) : rv;
+        let rv = new this.Collection(this.coll, op, {keyPath: this.keyPath, value: val});
+        return this.op ? new this.Collection(this.coll, this.op, rv) : rv;
     }
 });
+
+props(WhereClause.prototype, {Collection: { get() { return this.coll.Collection; }}});
+

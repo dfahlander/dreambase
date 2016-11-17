@@ -1,5 +1,6 @@
-import {extend} from './utils';
+import {extend} from '../utils';
 import {IQuery} from './iengine';
+import {} from ''
 
 export interface ICancelToken {
     cancelled: boolean;
@@ -79,22 +80,22 @@ export abstract class QueryExecutor implements IQueryExecutorOptions {
     abstract above(
         query: IQuery,
         onNext: StreamCallback,
-        value: {keyPath: string, value: any});
+        criteria: {keyPath: string | string[], value: any});
 
     abstract aboveOrEqual(
         query: IQuery,
         onNext: StreamCallback,
-        value: {keyPath: string, value: any});
+        criteria: {keyPath: string | string[], value: any});
 
     abstract equalsIgnoreCase(
         query: IQuery,
         onNext: StreamCallback,
-        value: {keyPath: string, value: string});        
+        criteria: {keyPath: string | string[], value: string});        
 
     abstract equalsAnyOfIgnoreCase(
         query: IQuery,
         onNext: StreamCallback,
-        value: {keyPath: string, values: string[]});
+        criteria: {keyPath: string | string[], value: string[]});
 
     // ...
 
